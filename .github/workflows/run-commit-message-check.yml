@@ -1,0 +1,57 @@
+
+name: Commit Lint
+
+on: []
+
+env:
+  SIMPPLR_NPM_TOKEN: ${{secrets.SIMPPLR_NPM_TOKEN}}
+
+jobs:
+  commit-msg-check:
+    runs-on: kubernetes
+    steps:
+      - name: '☁️ Checkout repo'
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: '🔧 Setup pnpm'
+        uses: pnpm/action-setup@v4.0.0
+
+      - name: '🔧 Setup Node 20'
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: Set SIMPPLR_NPM_TOKEN in Machine Env
+        run: export SIMPPLR_NPM_TOKEN=${{secrets.SIMPPLR_NPM_TOKEN}}
+
+      - name: '🔧 Get pnpm store directory'
+        id: pnpm-cache
+        run: |
+          echo "pnpm_cache_dir=$(pnpm store path)" >> $GITHUB_OUTPUT
+        env:
+          SIMPPLR_NPM_TOKEN: ${{ secrets.SIMPPLR_NPM_TOKEN }}
+
+      - name: '🔧 Setup pnpm cache'
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.pnpm-cache.outputs.pnpm_cache_dir }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+        env:
+          SIMPPLR_NPM_TOKEN: ${{ secrets.SIMPPLR_NPM_TOKEN }}
+
+      - name: '📦 Install deps (with cache)'
+        run: pnpm install
+        env:
+          SIMPPLR_NPM_TOKEN: ${{ secrets.SIMPPLR_NPM_TOKEN }}
+
+      - name: Validate current commit (last commit) with commitlint
+        if: github.event_name == 'push'
+        run: npx commitlint --from HEAD~1 --to HEAD --verbose
+
+      - name: Validate PR commits with commitlint
+        if: github.event_name == 'pull_request'
+        run: npx commitlint --from ${{ github.event.pull_request.head.sha }}~${{ github.event.pull_request.commits }} --to ${{ github.event.pull_request.head.sha }} --verbose

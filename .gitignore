@@ -1,0 +1,58 @@
+# dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Node modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Logs
+logs/
+*.log
+*.log.*
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# Ignore build artifacts from all packages
+dist/
+*.d.ts
+*.js.map
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Dependency directories
+jspm_packages/
+
+# Nest.js
+tsconfig.tsbuildinfo
+tsconfig.build.tsbuildinfo
+.tsbuildinfo
+
+# .env files
+.env
+.env.*
+
+# IDEA
+.idea
+.sublime
+*.swp
+!/.vscode/
+
+# Mac specific
+.DS_Store
+.scannerwork
+
+# turbo
+.turbo
+
+# cache
+.dccache
+

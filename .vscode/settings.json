@@ -1,0 +1,11 @@
+{
+  "sonarlint.connectedMode.project": {
+    "connectionId": "https-sonar-simpplr-xyz",
+    "projectKey": "wfb-be"
+  },
+  "workbench.colorCustomizations": {
+    "activityBar.background": "#4C2111",
+    "titleBar.activeBackground": "#6A2F18",
+    "titleBar.activeForeground": "#FEFCFB"
+  }
+}

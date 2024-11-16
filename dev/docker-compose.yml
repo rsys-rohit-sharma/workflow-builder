@@ -1,0 +1,95 @@
+version: '3.8'
+
+services:
+    mongodb:
+        build:
+            context: .
+            args:
+                MONGO_VERSION: 7
+        container_name: mongodb
+        environment:
+            MONGO_REPLICA_HOST: 127.0.0.1
+            MONGO_REPLICA_PORT: 27017
+            MONGO_COMMAND: 'mongosh'
+        ports:
+            - '27017:27017'
+        restart: unless-stopped
+        healthcheck:
+            test: [ 'CMD', 'mongosh', 'admin', '--port', '27017', '--eval', "db.adminCommand('ping').ok" ]
+            interval: 5s
+            timeout: 2s
+            retries: 20
+        volumes:
+            - wfb-mongodb-data:/data/db
+            - wfb-mongodb-config:/data/configdb
+        networks:
+            - wfb_network
+
+    redis:
+        image: redis:7-alpine
+        container_name: redis
+        ports:
+            - '16379:6379'
+        volumes:
+            - wfb-redis-db:/data
+        restart: unless-stopped
+        networks:
+            - wfb_network
+
+    kafka:
+        image: docker.io/bitnami/kafka:3.7
+        hostname: kafka
+        ports:
+            - "9092:9092"
+            - "9094:9094"
+        volumes:
+            - "wfb-kafka-data:/bitnami"
+        environment:
+            - KAFKA_ENABLE_KRAFT=yes
+            - KAFKA_CFG_PROCESS_ROLES=broker,controller
+            - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+            - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
+            - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
+            - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://127.0.0.1:9092,EXTERNAL://kafka:9094
+            - KAFKA_BROKER_ID=1
+            - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@127.0.0.1:9093
+            - ALLOW_PLAINTEXT_LISTENER=yes
+            - KAFKA_CFG_NODE_ID=1
+            - KAFKA_AUTO_CREATE_TOPICS_ENABLE=true
+            - BITNAMI_DEBUG=yes
+            - KAFKA_CFG_NUM_PARTITIONS=2
+        restart: unless-stopped
+        networks:
+            - wfb_network
+
+    elasticsearch:
+        image: docker.elastic.co/elasticsearch/elasticsearch:8.7.0
+        container_name: elasticsearch
+        environment:
+            - discovery.type=single-node
+            - ES_JAVA_OPTS=-Xms256m -Xmx256m
+            - xpack.security.enabled=false
+            - http.port=9200
+            - http.cors.allow-origin=http://localhost:5601
+            - http.cors.enabled=true
+            - http.cors.allow-headers=X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization
+            - http.cors.allow-credentials=true
+        volumes:
+            - wfb-elasticsearch-data:/usr/share/elasticsearch/data
+        ports:
+            - '9200:9200'
+            - '9300:9300'
+        restart: unless-stopped
+        networks:
+            - wfb_network
+
+volumes:
+    wfb-redis-db:
+    wfb-kafka-data:
+    wfb-mongodb-data:
+    wfb-elasticsearch-data:
+    wfb-mongodb-config:
+
+
+networks:
+    wfb_network:

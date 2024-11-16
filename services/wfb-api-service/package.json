@@ -1,0 +1,65 @@
+{
+  "name": "wfb-api-service",
+  "private": true,
+  "version": "0.0.1",
+  "license": "MIT",
+  "description": "Workflow builder micro service for all wfb APIs",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "nest build",
+    "clean": "git clean -xdf node_modules",
+    "start": "nest start",
+    "dev": "LOCAL=true nest start --watch",
+    "start:local": "LOCAL=true nest start",
+    "start:watch": "LOCAL=true nest start --watch",
+    "start:prod": "node dist/main",
+    "lint": "eslint ./src",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "lint:fix": "eslint --fix ./src",
+    "type-check": "tsc --noEmit",
+    "test": "TEST=true DOTENV_CONFIG_PATH=../../.env-sample jest  --detectOpenHandles --setupFiles dotenv/config",
+    "test:watch": "TEST=true DOTENV_CONFIG_PATH=../../.env-sample jest  --detectOpenHandles --setupFiles dotenv/config --watch",
+    "test:cov": "TEST=true DOTENV_CONFIG_PATH=../../.env-sample jest  --detectOpenHandles --setupFiles dotenv/config --coverage",
+    "test:debug": "echo 'test:debug not available",
+    "test:e2e": "echo 'test:e2e not available'",
+    "test:local": "TEST=true ENV=dev jest",
+    "migrate:up": "LOCAL=true ts-node -r tsconfig-paths/register src/migrations/changelogs/index.ts up",
+    "migrate:down": "LOCAL=true ts-node -r tsconfig-paths/register src/migrations/changelogs/index.ts down",
+    "migrate:create": "LOCAL=true ts-node -r tsconfig-paths/register src/migrations/changelogs/index.ts new"
+  },
+  "dependencies": {
+    "@simpplr/wfb-api-contracts": "workspace:*",
+    "@simpplr/wfb-common": "workspace:*",
+    "express-basic-auth": "^1.2.1"
+  },
+  "jest": {
+    "coverageReporters": [
+      "clover",
+      "json",
+      "lcov",
+      "text",
+      "html"
+    ],
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "moduleDirectories": [
+      "node_modules",
+      "src"
+    ],
+    "rootDir": "src",
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.(t|j)s$": "ts-jest"
+    },
+    "collectCoverageFrom": [
+      "**/*.(t|j)s"
+    ],
+    "coverageDirectory": "../coverage",
+    "coveragePathIgnorePatterns": [],
+    "testEnvironment": "node",
+    "resetMocks": true
+  }
+}

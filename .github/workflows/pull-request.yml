@@ -1,0 +1,87 @@
+
+name: CI
+on:
+  push:
+    branches:
+      - develop
+    paths:
+      - '**.ts'
+      - '**.json'
+      - '**.properties'
+      - '**.cjs'
+      - '**/pnpm-*.yaml'
+      - '**/pull-request.yml'
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - '**.ts'
+      - '**.json'
+      - '**.properties'
+      - '**.cjs'
+      - '**/pnpm-*.yaml'
+      - '**/pull-request.yml'
+  workflow_dispatch:
+
+# You can leverage Vercel Remote Caching with Turbo to speed up your builds
+# @link https://turborepo.org/docs/core-concepts/remote-caching#remote-caching-on-vercel-builds
+
+jobs:
+  build-lint-typecheck-test-sonarqube:
+    runs-on: kubernetes
+    steps:
+      - name: '☁️ Checkout repo'
+        uses: actions/checkout@v3
+
+      - name: '🔧 Setup pnpm'
+        uses: pnpm/action-setup@v4.0.0
+
+      - name: '🔧 Setup Node 20'
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: Set SIMPPLR_NPM_TOKEN in Machine Env
+        run: export SIMPPLR_NPM_TOKEN=${{secrets.SIMPPLR_NPM_TOKEN}}
+
+      - name: '🔧 Get pnpm store directory'
+        id: pnpm-cache
+        run: |
+          echo "pnpm_cache_dir=$(pnpm store path)" >> $GITHUB_OUTPUT
+        env:
+          SIMPPLR_NPM_TOKEN: ${{ secrets.SIMPPLR_NPM_TOKEN }}
+
+      - name: '🔧 Setup pnpm cache'
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.pnpm-cache.outputs.pnpm_cache_dir }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+        env:
+          SIMPPLR_NPM_TOKEN: ${{ secrets.SIMPPLR_NPM_TOKEN }}
+
+      - name: '📦 Install deps (with cache)'
+        run: pnpm install
+        env:
+          SIMPPLR_NPM_TOKEN: ${{ secrets.SIMPPLR_NPM_TOKEN }}
+      - name: '🛠 Build'
+        run: pnpm turbo build
+        env:
+          SIMPPLR_NPM_TOKEN: ${{ secrets.SIMPPLR_NPM_TOKEN }}
+      - name: '🛠 Type Check'
+        run: pnpm turbo type-check
+        env:
+          SIMPPLR_NPM_TOKEN: ${{ secrets.SIMPPLR_NPM_TOKEN }}
+      - name: '🛠 Lint'
+        run: pnpm turbo lint
+        env:
+          SIMPPLR_NPM_TOKEN: ${{ secrets.SIMPPLR_NPM_TOKEN }}
+      - name: '🛠 Test'
+        run: pnpm turbo test:cov
+        env:
+          SIMPPLR_NPM_TOKEN: ${{ secrets.SIMPPLR_NPM_TOKEN }}
+      - name: '🛠 SonarQube Analysis'
+        uses: sonarsource/sonarqube-scan-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}

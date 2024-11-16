@@ -1,0 +1,70 @@
+{
+    "name": "@simpplr/wfb-api-contracts",
+    "version": "1.0.0",
+    "private": true,
+    "files": [
+        "dist"
+    ],
+    "engines": {
+        "node": ">=20"
+    },
+    "module": "dist/esm/index.mjs",
+    "types": "dist/esm/index.d.ts",
+    "main": "dist/cjs/index.cjs",
+    "exports": {
+        ".": {
+            "types": "./dist/esm/index.d.ts",
+            "import": "./dist/esm/index.mjs",
+            "require": "./dist/cjs/index.cjs"
+        }
+    },
+    "scripts": {
+        "build": "rollup -c",
+        "pre-commit": "lint-staged",
+        "pre-push": "tsc && pnpm run test",
+        "test": "jest --detectOpenHandles",
+        "test:cov": "jest  --detectOpenHandles --coverage",
+        "test:local": "TEST=true ENV=dev jest",
+        "lint": "eslint ./src",
+        "lint:fix": "eslint --fix ./src",
+        "clean": "git clean -xdf node_modules",
+        "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+        "type-check": "tsc --noEmit"
+    },
+    "dependencies": {
+        "@sinclair/typebox": "^0.31.28"
+    },
+    "jest": {
+        "coverageReporters": [
+            "clover",
+            "json",
+            "lcov",
+            "text",
+            "html"
+        ],
+        "moduleFileExtensions": [
+            "js",
+            "json",
+            "ts"
+        ],
+        "moduleDirectories": [
+            "node_modules",
+            "src"
+        ],
+        "rootDir": "src",
+        "testRegex": ".*\\.spec\\.ts$",
+        "transform": {
+            "^.+\\.(t|j)s$": "ts-jest"
+        },
+        "collectCoverageFrom": [
+            "**/*.(t|j)s"
+        ],
+        "coverageDirectory": "../coverage",
+        "coveragePathIgnorePatterns": [
+            "/node_modules/",
+            "main.ts"
+        ],
+        "testEnvironment": "node",
+        "resetMocks": true
+    }
+}

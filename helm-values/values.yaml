@@ -1,0 +1,75 @@
+#***********************************************************************************************************#
+# Below Values are required for helm chart #
+#***********************************************************************************************************#
+#***********************************************************************************************************#
+# Common Deployment Variables #
+#***********************************************************************************************************#
+
+#NOTE: MicroserviceName and label's name must be same.
+
+# Details of all sub-microservices
+microservicesName: # This name is common for all the microservices
+  wfb-api-service:
+    isServiceEnabled: true                   # value would be true if you want to create service against this deployment
+    isOTELEnabled: true
+    serviceName: "wfb-api-service"          # Service Name
+    isHpaEnabled: true                       # Keep it as it is, this will be replaced from jenkins
+    name: "wfb-api-service"
+    labels:
+      name: "wfb-api-service"
+      team: "wfb-beta"
+    repo: "wfb-api-service"                 # ECR Repo Name
+    resources:
+      requests:
+        cpu: 500m
+        memory: 500Mi
+      limits:
+        cpu: 500m
+        memory: 500Mi
+
+# HealthCheck path
+startUpProbe:
+  create: true
+  path: /startUpProbe
+  initialDelaySeconds: 60
+  periodSeconds: 5 #as of now keeping as 5s as we are not sure about the idle value, will tweak it later
+  failureThreshold: 2 #similar to ALB
+  successThreshold: 2 #similar to ALB
+
+livenessProbe:
+  create: true
+  path: /livenessProbe
+  initialDelaySeconds: 60
+  periodSeconds: 5 #as of now keeping as 5s as we are not sure about the idle value, will tweak it later
+  failureThreshold: 2 #similar to ALB
+  successThreshold: 2 #similar to ALB
+
+readinessProbe:
+  create: true
+  path: /livenessProbe
+  initialDelaySeconds: 60
+  periodSeconds: 5 #as of now keeping as 5s as we are not sure about the idle value, will tweak it later
+  failureThreshold: 2 #similar to ALB
+  successThreshold: 2 #similar to ALB
+
+ConfigSecretKey:
+  - name: SIMPPLR_IDENTITY_MGMT_MS_BASE_URL
+    key: SIMPPLR_IDENTITY_MGMT_MS_BASE_URL
+
+#***********************************************************************************************************#
+# Ingress Variables #
+#***********************************************************************************************************#
+
+ingress:
+  className: ""
+  paths:
+    - path: /v1/wfb
+      pathType: ImplementationSpecific
+      serviceName: wfb-api-service          # use serviceName for which you want to created ingress resource.
+    - path: /v1/wfb/*
+      pathType: ImplementationSpecific
+      serviceName: wfb-api-service          # use serviceName for which you want to created ingress resource.
+
+isOTELEnabled: true
+GHA_SERVICE_TO_DEPLOY: REPLACE_SERVICE_TO_DEPLOY
+GHA_TAG_TO_DEPLOY: REPLACE_IMAGE_TAG_TO_DEPLOY
